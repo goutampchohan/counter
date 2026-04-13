@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radha Rani Naam Jaap Tracker</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <!-- GSAP for Animations -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+
+    <!-- html2canvas for Screenshot Generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        spiritual: {
+                            light: '#ffd6eb',
+                            main: '#ffb3d9',
+                            dark: '#ff9ecf',
+                            gold: '#ffd700',
+                            bg: '#fffbfd'
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['Cinzel', 'serif'],
+                        body: ['Poppins', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(255, 158, 207, 0.15)',
+                        'glow': '0 0 20px rgba(255, 215, 0, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #fffbfd 0%, #ffeaf5 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px 0 rgba(255, 158, 207, 0.15);
+        }
+
+        .glass-button {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .glass-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 158, 207, 0.3);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.6) 100%);
+        }
+
+        .glass-button:active {
+            transform: translateY(1px);
+        }
+
+        /* Text Gradients & Glows */
+        .text-gradient {
+            background: linear-gradient(to right, #ff9ecf, #e085b3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gold-glow-text {
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+        }
+
+        /* Progress Bar */
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #ff9ecf, #ffd6eb);
+            box-shadow: 0 0 10px rgba(255, 158, 207, 0.8);
+            transition: background 0.5s ease;
+        }
+
+        .progress-bar-fill.completed {
+            background: linear-gradient(90deg, #ff9ecf, #ffd700);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+        }
+
+        /* Animations */
+        @keyframes floatText {
+            0% {
+                opacity: 0;
+                transform: translateY(0) scale(0.8);
+            }
+
+            20% {
+                opacity: 1;
+                transform: translateY(-10px) scale(1.1);
+            }
+
+            80% {
+                opacity: 1;
+                transform: translateY(-40px) scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateY(-60px) scale(0.9);
+            }
+        }
+
+        .floating-jaap-text {
+            position: absolute;
+            pointer-events: none;
+            color: #ff9ecf;
+            font-family: 'Cinzel', serif;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 0 0 5px white, 0 0 10px rgba(255, 158, 207, 0.5);
+            animation: floatText 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            z-index: 50;
+        }
+
+        @keyframes pulseGlow {
+            0% {
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+                transform: scale(1);
+            }
+
+            50% {
+                text-shadow: 0 0 25px rgba(255, 215, 0, 0.8);
+                transform: scale(1.02);
+            }
+
+            100% {
+                text-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+                transform: scale(1);
+            }
+        }
+
+        .pulse-active {
+            animation: pulseGlow 0.4s ease-out;
+        }
+
+        /* Particles */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 214, 235, 0.8) 0%, rgba(255, 214, 235, 0) 70%);
+            border-radius: 50%;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ff9ecf;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e085b3;
+        }
+
+        /* Hidden target for html2canvas */
+        #screenshot-target {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            width: 1080px;
+            height: 1080px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #fffbfd 0%, #ffeaf5 100%);
+            padding: 40px;
+            box-sizing: border-box;
+            z-index: -100;
+        }
+    </style>
+</head>
+
+<body class="font-body text-gray-800 antialiased selection:bg-spiritual-light selection:text-gray-900">
+
+    <!-- Background Particles -->
+    <div id="particle-container"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed w-full top-0 z-40 transition-all duration-300" id="navbar">
+        <div class="glass-panel mx-4 mt-4 rounded-full px-6 py-3 flex justify-between items-center">
+            <div class="font-heading font-bold text-xl text-spiritual-dark flex items-center gap-2">
+                <i class="ph-fill ph-flower-lotus text-spiritual-gold text-2xl"></i>
+                <span class="hidden sm:inline">Naam Jaap</span>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex gap-6 items-center text-sm font-medium">
+                <a href="#home" class="hover:text-spiritual-dark transition-colors">Home</a>
+                <a href="#benefits" class="hover:text-spiritual-dark transition-colors">Benefits</a>
+                <a href="#about" class="hover:text-spiritual-dark transition-colors">About</a>
+                <button onclick="shareWebsite()"
+                    class="text-spiritual-dark hover:text-spiritual-gold transition-colors flex items-center gap-1">
+                    <i class="ph ph-share-network"></i> Share
+                </button>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button id="menu-toggle" class="md:hidden text-2xl text-spiritual-dark focus:outline-none">
+                <i class="ph ph-list"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div id="mobile-menu"
+        class="fixed inset-0 bg-white/90 backdrop-blur-lg z-50 transform translate-x-full transition-transform duration-300 flex flex-col items-center justify-center gap-8 font-heading text-2xl">
+        <button id="close-menu" class="absolute top-8 right-8 text-3xl text-gray-500 hover:text-spiritual-dark">
+            <i class="ph ph-x"></i>
+        </button>
+        <a href="#home" class="menu-link hover:text-spiritual-dark transition-colors">Home</a>
+        <a href="#benefits" class="menu-link hover:text-spiritual-dark transition-colors">Benefits of Naam Jaap</a>
+        <a href="#about" class="menu-link hover:text-spiritual-dark transition-colors">About Radha Rani</a>
+        <button onclick="shareWebsite()"
+            class="menu-link hover:text-spiritual-dark transition-colors flex items-center gap-2">
+            <i class="ph ph-share-network"></i> Share Website
+        </button>
+    </div>
+
+    <!-- Main Content -->
+    <main id="home" class="pt-28 pb-20 px-4 max-w-4xl mx-auto flex flex-col items-center min-h-screen relative z-10">
+
+        <!-- Hero Section -->
+        <div class="text-center mb-10 opacity-0 transform translate-y-4" id="hero-text">
+            <h1 class="font-heading text-4xl md:text-5xl font-bold text-spiritual-dark mb-3">Radhe Radhe 🙏</h1>
+            <h2 class="text-xl md:text-2xl font-medium text-gray-600 mb-4">Daily Naam Jaap Tracker</h2>
+            <p class="text-gray-500 max-w-md mx-auto text-sm md:text-base">Experience peace and positive energy through
+                chanting Radha Rani naam.</p>
+        </div>
+
+        <!-- Divine Centerpiece (Abstract Lotus/Mandala representation) -->
+        <div class="relative w-48 h-48 md:w-64 md:h-64 mb-10 opacity-0" id="divine-art">
+            <div class="absolute inset-0 bg-spiritual-light rounded-full blur-3xl opacity-60 animate-pulse"></div>
+            <div class="absolute inset-0 flex items-center justify-center text-spiritual-dark">
+                <svg width="100%" height="100%" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"
+                    class="drop-shadow-lg opacity-80">
+                    <path fill="currentColor"
+                        d="M100 20C100 20 120 70 160 80C160 80 120 90 100 180C100 180 80 90 40 80C40 80 80 70 100 20Z" />
+                    <path fill="#ffd700" opacity="0.6"
+                        d="M100 40C100 40 115 75 145 80C145 80 115 85 100 160C100 160 85 85 55 80C55 80 85 75 100 40Z" />
+                    <circle cx="100" cy="100" r="15" fill="#fff" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Counter Tracker Card -->
+        <div class="glass-panel w-full max-w-md p-8 rounded-3xl text-center relative overflow-hidden opacity-0"
+            id="tracker-card">
+
+            <div class="relative mb-6">
+                <div id="counter-display"
+                    class="font-heading text-6xl md:text-7xl font-bold text-spiritual-dark gold-glow-text transition-all duration-200">
+                    0
+                </div>
+                <div class="text-gray-500 mt-2 font-medium">out of 2000 daily goal</div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-white/50 h-4 rounded-full mb-8 overflow-hidden border border-white/60 relative">
+                <div id="progress-fill" class="progress-bar-fill h-full w-0 rounded-full relative">
+                    <div class="absolute right-0 top-0 bottom-0 w-4 bg-white/30 blur-sm rounded-full"></div>
+                </div>
+            </div>
+
+            <!-- Chant Buttons Container (relative for floating text positioning) -->
+            <div class="relative" id="button-container">
+                <div class="flex justify-center gap-4">
+                    <button onclick="addChant(1, event)"
+                        class="glass-button flex-1 py-4 rounded-2xl font-heading text-xl font-bold text-spiritual-dark shadow-sm">
+                        +1
+                    </button>
+                    <button onclick="addChant(11, event)"
+                        class="glass-button flex-1 py-4 rounded-2xl font-heading text-xl font-bold text-spiritual-dark shadow-sm">
+                        +11
+                    </button>
+                    <button onclick="addChant(108, event)"
+                        class="glass-button flex-1 py-4 rounded-2xl font-heading text-xl font-bold text-spiritual-gold bg-spiritual-main/10 shadow-sm border-spiritual-main/30">
+                        +108
+                    </button>
+                </div>
+            </div>
+
+            <!-- Reset Button -->
+            <div class="mt-6 opacity-80 hover:opacity-100 transition-opacity">
+                <button onclick="openResetModal()"
+                    class="text-sm font-medium text-spiritual-dark border border-spiritual-dark/40 py-2 px-6 rounded-full hover:shadow-[0_0_15px_rgba(255,158,207,0.5)] hover:bg-white/50 transition-all duration-300 flex items-center justify-center gap-2 mx-auto">
+                    <i class="ph ph-arrow-counter-clockwise"></i> Reset Counter
+                </button>
+            </div>
+
+            <!-- Completion Section (Hidden by default) -->
+            <div id="completion-section" class="mt-8 hidden flex flex-col items-center animate-fade-in">
+                <div class="text-spiritual-gold text-4xl mb-2"><i class="ph-fill ph-sparkle"></i></div>
+                <h3 class="font-heading text-xl font-bold text-gray-800 mb-1">Congratulations 🙏</h3>
+                <p class="text-sm text-gray-600 mb-4">You completed 2000 naam jaap today.</p>
+
+                <button onclick="openScreenshotModal()"
+                    class="w-full bg-gradient-to-r from-spiritual-dark to-[#e085b3] text-white py-3 px-6 rounded-xl font-medium shadow-lg shadow-spiritual-dark/30 hover:shadow-spiritual-dark/50 transition-all hover:-translate-y-1 flex items-center justify-center gap-2">
+                    <i class="ph ph-image"></i> Generate Share Card
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Sections -->
+    <div class="relative z-10 bg-white/30 backdrop-blur-md py-20 mt-10 border-t border-white/50">
+        <div class="max-w-6xl mx-auto px-4">
+
+            <!-- Benefits Section -->
+            <section id="benefits" class="mb-24 scroll-mt-28">
+                <h2 class="font-heading text-3xl text-center font-bold text-spiritual-dark mb-12">Benefits of Naam Jaap
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Cards -->
+                    <div class="glass-panel p-6 rounded-2xl hover:scale-105 transition-transform duration-300">
+                        <div class="text-spiritual-dark text-3xl mb-4"><i class="ph-fill ph-brain"></i></div>
+                        <h3 class="font-heading font-bold text-lg mb-2">Peace of Mind</h3>
+                        <p class="text-gray-600 text-sm">Calms the restless mind, reducing stress and anxiety, bringing
+                            profound inner tranquility.</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl hover:scale-105 transition-transform duration-300">
+                        <div class="text-spiritual-dark text-3xl mb-4"><i class="ph-fill ph-sun"></i></div>
+                        <h3 class="font-heading font-bold text-lg mb-2">Positive Energy</h3>
+                        <p class="text-gray-600 text-sm">Clears negative auras and fills your surroundings with vibrant,
+                            divine vibrations.</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl hover:scale-105 transition-transform duration-300">
+                        <div class="text-spiritual-dark text-3xl mb-4"><i class="ph-fill ph-plant"></i></div>
+                        <h3 class="font-heading font-bold text-lg mb-2">Spiritual Growth</h3>
+                        <p class="text-gray-600 text-sm">Accelerates your spiritual journey, bringing you closer to the
+                            ultimate divine consciousness.</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl hover:scale-105 transition-transform duration-300">
+                        <div class="text-spiritual-dark text-3xl mb-4"><i class="ph-fill ph-target"></i></div>
+                        <h3 class="font-heading font-bold text-lg mb-2">Better Focus</h3>
+                        <p class="text-gray-600 text-sm">Improves concentration and mindfulness, helping you stay
+                            grounded in the present moment.</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl hover:scale-105 transition-transform duration-300">
+                        <div class="text-spiritual-dark text-3xl mb-4"><i class="ph-fill ph-smiley"></i></div>
+                        <h3 class="font-heading font-bold text-lg mb-2">Inner Happiness</h3>
+                        <p class="text-gray-600 text-sm">Unlocks a source of joy that isn't dependent on external
+                            circumstances.</p>
+                    </div>
+                    <div class="glass-panel p-6 rounded-2xl hover:scale-105 transition-transform duration-300">
+                        <div class="text-spiritual-dark text-3xl mb-4"><i class="ph-fill ph-hands-praying"></i></div>
+                        <h3 class="font-heading font-bold text-lg mb-2">Divine Connection</h3>
+                        <p class="text-gray-600 text-sm">Establishes a deep, loving bond with Sri Radha Rani, attracting
+                            her boundless grace.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- About Section -->
+            <section id="about" class="max-w-3xl mx-auto text-center scroll-mt-28 glass-panel p-8 md:p-12 rounded-3xl">
+                <i class="ph-fill ph-flower-lotus text-spiritual-gold text-5xl mb-6 inline-block"></i>
+                <h2 class="font-heading text-3xl font-bold text-spiritual-dark mb-6">About Radha Rani Naam Jaap</h2>
+                <p class="text-gray-700 leading-relaxed mb-4">
+                    The name "Radha" represents the highest form of spiritual love and devotion. Chanting her holy name
+                    is considered one of the most powerful spiritual practices in the path of Bhakti.
+                </p>
+                <p class="text-gray-700 leading-relaxed mb-4">
+                    It is believed that the name itself is non-different from the divine entity. By repeatedly chanting
+                    "Radhe Radhe", we cleanse our consciousness, awaken our dormant spiritual love, and experience an
+                    unexplainable peace.
+                </p>
+                <p class="text-gray-700 leading-relaxed font-medium italic">
+                    "Wherever the name of Sri Radha is sung, the presence of divine grace is absolute."
+                </p>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-8 text-center relative z-10">
+        <p class="font-heading text-spiritual-dark font-bold text-lg mb-1">Radhe Radhe 🙏</p>
+        <p class="text-xs text-gray-500">Made with devotion</p>
+    </footer>
+
+    <!-- Screenshot Modal -->
+    <div id="screenshot-modal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm rounded-3xl overflow-hidden shadow-2xl transform scale-95 transition-transform duration-300"
+            id="modal-content">
+
+            <div class="p-4 flex justify-between items-center border-b border-white/20">
+                <h3 class="font-heading font-bold text-gray-800">Your Share Card</h3>
+                <button onclick="closeScreenshotModal()" class="text-gray-500 hover:text-gray-800 focus:outline-none">
+                    <i class="ph ph-x text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-4 flex justify-center bg-gray-50/50">
+                <!-- Image container -->
+                <div id="generated-image-container"
+                    class="rounded-xl overflow-hidden shadow-md w-full aspect-square bg-gray-200 animate-pulse flex items-center justify-center">
+                    <i class="ph ph-spinner-gap animate-spin text-3xl text-gray-400"></i>
+                </div>
+            </div>
+
+            <div class="p-4 space-y-3">
+                <button onclick="downloadImage()"
+                    class="w-full bg-gradient-to-r from-spiritual-dark to-[#e085b3] text-white py-3 px-4 rounded-xl font-medium shadow-md flex items-center justify-center gap-2 hover:opacity-90 transition-opacity">
+                    <i class="ph ph-download-simple text-lg"></i> Download Image
+                </button>
+                <div class="grid grid-cols-2 gap-3">
+                    <button onclick="shareWhatsApp()"
+                        class="bg-[#25D366] text-white py-3 px-4 rounded-xl font-medium shadow-md flex items-center justify-center gap-2 hover:bg-[#1ebe5d] transition-colors">
+                        <i class="ph ph-whatsapp-logo text-lg"></i> WhatsApp
+                    </button>
+                    <button onclick="shareNative()"
+                        class="bg-white text-gray-700 py-3 px-4 rounded-xl font-medium shadow-md border border-gray-200 flex items-center justify-center gap-2 hover:bg-gray-50 transition-colors">
+                        <i class="ph ph-share-network text-lg"></i> Share
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reset Confirmation Modal -->
+    <div id="reset-modal"
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 text-center transform scale-95 transition-transform duration-300"
+            id="reset-modal-content">
+            <div class="text-spiritual-dark text-5xl mb-4 flex justify-center"><i
+                    class="ph ph-arrow-counter-clockwise"></i></div>
+            <p class="text-gray-700 font-medium mb-6">Are you sure you want to reset today's naam jaap?</p>
+            <div class="flex gap-3">
+                <button onclick="closeResetModal()"
+                    class="flex-1 py-3 rounded-xl font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="resetCounter()"
+                    class="flex-1 py-3 rounded-xl font-medium text-white bg-gradient-to-r from-red-400 to-red-500 shadow-md hover:shadow-lg transition-all">
+                    Yes Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HIDDEN TARGET FOR HTML2CANVAS (PREMIUM CARD DESIGN) -->
+    <!-- This is rendered off-screen at a fixed high resolution for consistent images -->
+    <div id="screenshot-target">
+        <!-- Inner Card -->
+        <div
+            style="width: 900px; height: 900px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.5) 100%); backdrop-filter: blur(20px); border-radius: 40px; border: 4px solid rgba(255, 215, 0, 0.5); box-shadow: 0 20px 50px rgba(255, 158, 207, 0.3), inset 0 0 0 2px rgba(255,255,255,0.8); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+
+            <!-- Decorative Corners -->
+            <div style="position: absolute; top: 30px; left: 30px; font-size: 60px; color: #ffd700; opacity: 0.5;">✦
+            </div>
+            <div style="position: absolute; top: 30px; right: 30px; font-size: 60px; color: #ffd700; opacity: 0.5;">✦
+            </div>
+            <div style="position: absolute; bottom: 30px; left: 30px; font-size: 60px; color: #ffd700; opacity: 0.5;">✦
+            </div>
+            <div style="position: absolute; bottom: 30px; right: 30px; font-size: 60px; color: #ffd700; opacity: 0.5;">✦
+            </div>
+
+            <div
+                style="font-family: 'Cinzel', serif; font-size: 60px; font-weight: bold; color: #ff9ecf; text-shadow: 0 0 20px rgba(255,215,0,0.5); margin-bottom: 20px;">
+                Radhe Radhe 🙏
+            </div>
+
+            <div style="font-family: 'Poppins', sans-serif; font-size: 36px; color: #666; margin-bottom: 50px;"
+                id="canvas-date">
+                Date Placeholder
+            </div>
+
+            <div
+                style="font-family: 'Poppins', sans-serif; font-size: 48px; color: #333; font-weight: 500; margin-bottom: 30px; text-align: center;">
+                Today I completed
+            </div>
+
+            <div
+                style="background: linear-gradient(90deg, #ff9ecf, #ffd700); padding: 30px 80px; border-radius: 30px; box-shadow: 0 10px 30px rgba(255, 215, 0, 0.4); margin-bottom: 40px;">
+                <div style="font-family: 'Cinzel', serif; font-size: 120px; font-weight: bold; color: white; line-height: 1;"
+                    id="canvas-count">
+                    2000+
+                </div>
+            </div>
+
+            <div
+                style="font-family: 'Poppins', sans-serif; font-size: 40px; color: #ff9ecf; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;">
+                Naam Jaap
+            </div>
+
+            <div
+                style="position: absolute; bottom: 50px; font-family: 'Poppins', sans-serif; font-size: 24px; color: #999;">
+                radharani-jaap.com
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- State & Config ---
+        const GOAL = 2000;
+        let count = 0;
+        let lastDate = "";
+        let generatedImageDataUrl = null;
+
+        // --- DOM Elements ---
+        const counterDisplay = document.getElementById('counter-display');
+        const progressFill = document.getElementById('progress-fill');
+        const completionSection = document.getElementById('completion-section');
+        const buttonContainer = document.getElementById('button-container');
+
+        // --- Initialization ---
+        function init() {
+            createParticles();
+            checkDateAndLoad();
+            updateUI(false); // false = no animation on initial load
+
+            // Initial Animations using GSAP
+            gsap.to("#hero-text", { opacity: 1, y: 0, duration: 1, ease: "power3.out", delay: 0.2 });
+            gsap.to("#divine-art", { opacity: 1, scale: 1, duration: 1.5, ease: "back.out(1.7)", delay: 0.5 });
+            gsap.to("#tracker-card", { opacity: 1, y: 0, duration: 1, ease: "power2.out", delay: 0.8 });
+
+            // Navbar scroll effect
+            window.addEventListener('scroll', () => {
+                const nav = document.getElementById('navbar');
+                if (window.scrollY > 20) {
+                    nav.classList.add('bg-white/80', 'backdrop-blur-md', 'shadow-sm');
+                    nav.classList.remove('bg-transparent');
+                } else {
+                    nav.classList.remove('bg-white/80', 'backdrop-blur-md', 'shadow-sm');
+                    nav.classList.add('bg-transparent');
+                }
+            });
+        }
+
+        // --- Logic ---
+        function checkDateAndLoad() {
+            const today = new Date().toLocaleDateString();
+            const storedDate = localStorage.getItem('jaap_date');
+
+            if (storedDate === today) {
+                // Same day, load count
+                const storedCount = localStorage.getItem('jaap_count');
+                count = storedCount ? parseInt(storedCount) : 0;
+            } else {
+                // New day, reset
+                count = 0;
+                localStorage.setItem('jaap_date', today);
+                localStorage.setItem('jaap_count', '0');
+            }
+        }
+
+        function saveCount() {
+            localStorage.setItem('jaap_count', count.toString());
+        }
+
+        function openResetModal() {
+            const modal = document.getElementById('reset-modal');
+            const content = document.getElementById('reset-modal-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeResetModal() {
+            const modal = document.getElementById('reset-modal');
+            const content = document.getElementById('reset-modal-content');
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function resetCounter() {
+            count = 0;
+            saveCount();
+            updateUI(true); // updateUI naturally hides the completion/screenshot section when count < GOAL
+            closeResetModal();
+        }
+
+        function addChant(amount, event) {
+            // Check date on every tap to handle midnight crossover naturally
+            const today = new Date().toLocaleDateString();
+            if (localStorage.getItem('jaap_date') !== today) {
+                count = 0; // Reset visual
+                localStorage.setItem('jaap_date', today);
+            }
+
+            count += amount;
+            saveCount();
+
+            updateUI(true);
+
+            // Visual Feedback
+            triggerPulse();
+            if (event) {
+                createFloatingText(event);
+            }
+        }
+
+        function updateUI(animate = true) {
+            // Update Text
+            counterDisplay.innerText = count;
+
+            // Calculate Progress
+            let progressPercentage = (count / GOAL) * 100;
+            let visualPercentage = Math.min(progressPercentage, 100); // Cap at 100% for the bar
+
+            // Animate Bar
+            if (animate) {
+                gsap.to(progressFill, { width: `${visualPercentage}%`, duration: 0.5, ease: "power2.out" });
+            } else {
+                progressFill.style.width = `${visualPercentage}%`;
+            }
+
+            // Completion / Overflow Logic
+            if (count >= GOAL) {
+                progressFill.classList.add('completed');
+                // Show completion section if hidden
+                if (completionSection.classList.contains('hidden')) {
+                    completionSection.classList.remove('hidden');
+                    gsap.from(completionSection, { opacity: 0, y: 20, duration: 0.5 });
+                }
+            } else {
+                progressFill.classList.remove('completed');
+                completionSection.classList.add('hidden');
+            }
+        }
+
+        // --- Animations & Visuals ---
+        function triggerPulse() {
+            counterDisplay.classList.remove('pulse-active');
+            // Trigger reflow
+            void counterDisplay.offsetWidth;
+            counterDisplay.classList.add('pulse-active');
+        }
+
+        function createFloatingText(event) {
+            const rect = buttonContainer.getBoundingClientRect();
+            // Try to use click coords, fallback to center of container
+            const x = event.clientX ? event.clientX - rect.left : rect.width / 2;
+            const y = event.clientY ? event.clientY - rect.top : 20;
+
+            const textNode = document.createElement('div');
+            textNode.className = 'floating-jaap-text';
+            textNode.innerText = 'Radha Rani';
+
+            // Add some randomness to position
+            const randomX = x + (Math.random() * 40 - 20);
+
+            textNode.style.left = `${randomX}px`;
+            textNode.style.top = `${y}px`;
+
+            buttonContainer.appendChild(textNode);
+
+            // Clean up after animation
+            setTimeout(() => {
+                textNode.remove();
+            }, 1500);
+        }
+
+        function createParticles() {
+            const container = document.getElementById('particle-container');
+            const particleCount = 25;
+
+            for (let i = 0; i < particleCount; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+
+                // Random size 5px to 25px
+                const size = Math.random() * 20 + 5;
+                p.style.width = `${size}px`;
+                p.style.height = `${size}px`;
+
+                // Random starting position
+                p.style.left = `${Math.random() * 100}vw`;
+                p.style.top = `${Math.random() * 100}vh`;
+
+                container.appendChild(p);
+
+                // Animate with GSAP
+                animateParticle(p);
+            }
+        }
+
+        function animateParticle(particle) {
+            const duration = Math.random() * 10 + 10; // 10-20s
+
+            gsap.to(particle, {
+                y: `-=${window.innerHeight}`, // Move up entirely
+                x: `+=${(Math.random() - 0.5) * 200}`, // Drift sideways
+                rotation: Math.random() * 360,
+                duration: duration,
+                ease: "none",
+                onComplete: () => {
+                    // Reset to bottom and start over
+                    gsap.set(particle, {
+                        y: window.innerHeight + 50,
+                        x: `${Math.random() * 100}vw`
+                    });
+                    animateParticle(particle);
+                }
+            });
+
+            // Separate fade in/out animation
+            gsap.to(particle, {
+                opacity: Math.random() * 0.4 + 0.1, // Max opacity 0.1 - 0.5
+                duration: duration / 2,
+                yoyo: true,
+                repeat: 1,
+                ease: "sine.inOut"
+            });
+        }
+
+        // --- Screenshot & Share Logic ---
+
+        async function openScreenshotModal() {
+            const modal = document.getElementById('screenshot-modal');
+            const modalContent = document.getElementById('modal-content');
+            const imgContainer = document.getElementById('generated-image-container');
+
+            // Show modal
+            modal.classList.remove('hidden');
+            // Small delay for display block to register before transition
+            setTimeout(() => {
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+
+            // Reset container to loading state
+            imgContainer.innerHTML = '<i class="ph ph-spinner-gap animate-spin text-4xl text-gray-400"></i>';
+            imgContainer.classList.add('bg-gray-100', 'animate-pulse');
+
+            try {
+                // Populate target data
+                const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                document.getElementById('canvas-date').innerText = new Date().toLocaleDateString('en-US', dateOptions);
+                document.getElementById('canvas-count').innerText = count;
+
+                // Ensure target is fully rendered before capture
+                await new Promise(resolve => setTimeout(resolve, 100));
+
+                const target = document.getElementById('screenshot-target');
+
+                const canvas = await html2canvas(target, {
+                    scale: 1, // Keep scale 1 as target is already high res (1080x1080)
+                    backgroundColor: null,
+                    logging: false,
+                    useCORS: true
+                });
+
+                generatedImageDataUrl = canvas.toDataURL('image/png');
+
+                // Display in modal
+                imgContainer.classList.remove('bg-gray-100', 'animate-pulse');
+                imgContainer.innerHTML = `<img src="${generatedImageDataUrl}" class="w-full h-full object-cover" alt="Share Card">`;
+
+            } catch (error) {
+                console.error("Screenshot generation failed:", error);
+                imgContainer.classList.remove('animate-pulse');
+                imgContainer.innerHTML = '<p class="text-red-400 p-4 text-center text-sm">Failed to generate image. Please try again.</p>';
+            }
+        }
+
+        function closeScreenshotModal() {
+            const modal = document.getElementById('screenshot-modal');
+            const modalContent = document.getElementById('modal-content');
+
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function downloadImage() {
+            if (!generatedImageDataUrl) return;
+            const link = document.createElement('a');
+            link.download = `Radha_Rani_Jaap_${new Date().toISOString().split('T')[0]}.png`;
+            link.href = generatedImageDataUrl;
+            link.click();
+        }
+
+        function shareWhatsApp() {
+            const text = `Radhe Radhe 🙏\nToday I completed ${count} Naam Jaap of Sri Radha Rani.\nExperience peace: [Your Website Link Here]`;
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
+        async function shareNative() {
+            const text = `Radhe Radhe 🙏 Today I completed ${count} Naam Jaap.`;
+
+            if (navigator.share) {
+                try {
+                    // Try to share image if File API is supported (many mobile browsers)
+                    if (generatedImageDataUrl) {
+                        const res = await fetch(generatedImageDataUrl);
+                        const blob = await res.blob();
+                        const file = new File([blob], 'naam_jaap.png', { type: 'image/png' });
+
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                title: 'Radha Rani Naam Jaap',
+                                text: text,
+                                files: [file]
+                            });
+                            return;
+                        }
+                    }
+
+                    // Fallback to text only share
+                    await navigator.share({
+                        title: 'Radha Rani Naam Jaap',
+                        text: text,
+                        url: window.location.href
+                    });
+                } catch (error) {
+                    console.log('Error sharing:', error);
+                }
+            } else {
+                alert("Native sharing is not supported on this browser. Try WhatsApp or download the image.");
+            }
+        }
+
+        function shareWebsite() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Radha Rani Naam Jaap Tracker',
+                    text: 'Experience peace and positive energy through chanting. Try this beautiful tracker.',
+                    url: window.location.href
+                }).catch(console.error);
+            } else {
+                // Fallback copy to clipboard
+                navigator.clipboard.writeText(window.location.href);
+                alert("Website link copied to clipboard!");
+            }
+        }
+
+        // --- Mobile Menu Logic ---
+        const menuToggle = document.getElementById('menu-toggle');
+        const closeMenu = document.getElementById('close-menu');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuLinks = document.querySelectorAll('.menu-link');
+
+        function toggleMenu() {
+            mobileMenu.classList.toggle('translate-x-full');
+        }
+
+        menuToggle.addEventListener('click', toggleMenu);
+        closeMenu.addEventListener('click', toggleMenu);
+        menuLinks.forEach(link => link.addEventListener('click', toggleMenu));
+
+        // Start App
+        window.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+
+</html>
